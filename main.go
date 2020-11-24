@@ -5,13 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"project/regression"
 	"strconv"
-	"project/regression" 
 )
-
-func request (){
-
-}
 
 func main() {
 
