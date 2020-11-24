@@ -209,7 +209,7 @@ func (r *Regression) paralelProcess(f* float64, f2 float64, at float64, wg*sync.
 
 	//ln, _ := net.Listen("tcp", "192.168.0.4:5000")
 	//defer ln.Close()
-
+	//
 	//responseConn, _ := ln.Accept()
 	//handleResponse(f, responseConn)
 	//go func () {
