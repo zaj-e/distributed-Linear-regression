@@ -1,9 +1,12 @@
 package regression
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"math"
+	"math/rand"
+	"net"
 	"strconv"
 	"strings"
 
@@ -31,6 +34,7 @@ type Regression struct {
 	Formula           string
 	crosses           []featureCross
 	hasRun            bool
+	NodesDir		  []string
 }
 
 type dataPoint struct {
@@ -106,22 +110,6 @@ func (r *Regression) Train(d ...*dataPoint) {
 	}
 }
 
-//  SE VAN ACTUALIZANDO LOS VALORES Y SOLO SE LLAMA UNA VEZ EEN LA FUNCION RUN
-func (r *Regression) applyCrosses() {
-	unusedVariableIndexCursor := len(r.data[0].Variables)
-	for _, point := range r.data {
-		for _, cross := range r.crosses {
-			point.Variables = append(point.Variables, cross.Calculate(point.Variables)...)
-		}
-	}
-
-	if len(r.names.vars) == 0 {
-		r.names.vars = make(map[int]string, 5)
-	}
-	for _, cross := range r.crosses {
-		unusedVariableIndexCursor += cross.ExtendNames(r.names.vars, unusedVariableIndexCursor)
-	}
-}
 
 // SE COMPRUEBA QUE HAYAN PASADO LAS VALIADCNS INICIALES
 func (r *Regression) Run() error {
@@ -133,7 +121,6 @@ func (r *Regression) Run() error {
 	}
 
 	//apply any features crosses
-	r.applyCrosses()
 	r.hasRun = true
 
 	observations := len(r.data)
@@ -175,7 +162,12 @@ func (r *Regression) Run() error {
 	for i := n - 1; i >= 0; i-- {
 		c[i] = qty.At(i, 0)
 		for j := i + 1; j < n; j++ {
-			c[i] -= c[j] * reg.At(i, j)
+
+			go r.paralelProcess(&c[i], c[j], reg.At(i,j))
+
+			fmt.Println("This is happening", i)
+			fmt.Println("This is happening first", c[j])
+			fmt.Println("This is happening next", reg.At(i, j))
 		}
 		c[i] /= reg.At(i, i)
 	}
@@ -191,11 +183,39 @@ func (r *Regression) Run() error {
 		}
 	}
 
-	r.calcPrediccion()
+	r.CalcPrediccion()
 	r.calculaVarianza()
 	r.calcR2()
 	return nil
 }
+
+func (r *Regression) paralelProcess(f* float64, f2 float64, at float64) {
+	*f -= f2 * at
+	randomHostIndex := rand.Intn(len(r.NodesDir))
+	pickedDir := r.NodesDir[randomHostIndex]
+
+	conn, _ := net.Dial("tcp", pickedDir)
+	defer conn.Close()
+
+	fmt.Fprintln(conn, f2, at)
+
+	ln, _ := net.Listen("tcp", "194.168.0.4:5000")
+	defer ln.Close()
+
+	for {
+		conn, _ := ln.Accept()
+		go handleResponse(f, conn)
+	}
+}
+
+func handleResponse(f* float64, conn net.Conn) {
+	bufferIn := bufio.NewReader(conn)
+	strResult, _ := bufferIn.ReadString('\n')
+	strResult = strings.TrimSpace(strResult)
+	numReslt, _ := strconv.ParseFloat(strResult, 64)
+	*f = numReslt
+}
+
 
 // devuelve el coeficiente calculado para la variable i.
 func (r *Regression) Coeff(i int) float64 {
@@ -217,7 +237,7 @@ func (r *Regression) GetCoeffs() []float64 {
 	return coeffs
 }
 
-func (r *Regression) calcPrediccion() string {
+func (r *Regression) CalcPrediccion() string {
 	observations := len(r.data)
 	var Prediccion float64
 	var output string
