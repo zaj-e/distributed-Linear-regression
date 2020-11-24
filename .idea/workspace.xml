@@ -20,12 +20,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="590ef149-63a6-4415-a5e2-d08e7b78e9ca" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/students-mat.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/workingNode.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/regresion.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/regression/crosses.go" beforeDir="false" afterPath="$PROJECT_DIR$/regression/crosses.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/regression/regression.go" beforeDir="false" afterPath="$PROJECT_DIR$/regression/regression.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/student-matt.csv" beforeDir="false" afterPath="$PROJECT_DIR$/student-matt.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/workingNode.go" beforeDir="false" afterPath="$PROJECT_DIR$/workingNode.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

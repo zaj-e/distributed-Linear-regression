@@ -6,6 +6,8 @@ import (
 	"net"
 )
 
+var host string
+
 func main () {
 	host := "194.168.0.4:8000"
 	ln, _ := net.Listen("tcp", host)
@@ -21,4 +23,9 @@ func handleConnection(conn net.Conn) {
 	bufferIn := bufio.NewReader(conn)
 	result, _ := bufferIn.ReadString('\n')
 	fmt.Println(result)
+
+	newConn, _ := net.Dial("tcp", host)
+
+	defer conn.Close()
+	fmt.Println(newConn, result[0]*result[1])
 }

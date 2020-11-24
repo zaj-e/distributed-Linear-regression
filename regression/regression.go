@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"math/rand"
 	"net"
 	"strconv"
 	"strings"
+	"sync"
 
 	"gonum.org/v1/gonum/mat"
 )
@@ -159,16 +159,21 @@ func (r *Regression) Run() error {
 	qty.Mul(qtr, observed)
 
 	c := make([]float64, n)
+
+	var waiter sync.WaitGroup
+
 	for i := n - 1; i >= 0; i-- {
 		c[i] = qty.At(i, 0)
 		for j := i + 1; j < n; j++ {
 
-			go r.paralelProcess(&c[i], c[j], reg.At(i,j))
+			waiter.Add(1)
+			go r.paralelProcess(&c[i], c[j], reg.At(i,j), &waiter)
 
 			fmt.Println("This is happening", i)
 			fmt.Println("This is happening first", c[j])
 			fmt.Println("This is happening next", reg.At(i, j))
 		}
+		waiter.Wait()
 		c[i] /= reg.At(i, i)
 	}
 
@@ -189,17 +194,20 @@ func (r *Regression) Run() error {
 	return nil
 }
 
-func (r *Regression) paralelProcess(f* float64, f2 float64, at float64) {
+func (r *Regression) paralelProcess(f* float64, f2 float64, at float64, wg*sync.WaitGroup) {
+	defer wg.Done()
 	*f -= f2 * at
-	randomHostIndex := rand.Intn(len(r.NodesDir))
-	pickedDir := r.NodesDir[randomHostIndex]
+	//randomHostIndex := rand.Intn(len(r.NodesDir))
+	//pickedDir := r.NodesDir[randomHostIndex]
 
-	conn, _ := net.Dial("tcp", pickedDir)
+	fmt.Println("Is this??????")
+	dialDir := fmt.Sprintf("%s:%d", "192.168.0.12",8000)
+	conn, _ := net.Dial("tcp", dialDir)
 	defer conn.Close()
 
 	fmt.Fprintln(conn, f2, at)
 
-	ln, _ := net.Listen("tcp", "194.168.0.4:5000")
+	ln, _ := net.Listen("tcp", "192.168.0.4:5000")
 	defer ln.Close()
 
 	for {
