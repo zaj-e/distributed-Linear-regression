@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"project/regression" //IMPORTAMOS EL PAQUETE regression
+	"project/regression" 
 )
 
 func main() {
@@ -30,8 +30,8 @@ func main() {
 
 	//modelaremos segun el valor G3
 	var r regression.Regression
-	r.SetObserved("G2")
-	r.SetVar(0, "G3")
+	r.SetObserved("G3")
+	r.SetVar(0, "G2")
 
 	// BUCLE DE LOS DATOS
 	for i, record := range records {
