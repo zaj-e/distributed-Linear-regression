@@ -167,11 +167,11 @@ func (r *Regression) Run() error {
 		for j := i + 1; j < n; j++ {
 
 			waiter.Add(1)
-			go r.paralelProcess(&c[i], c[j], reg.At(i,j))
+			go r.paralelProcess(j, &c[i], c[j], reg.At(i,j), &waiter)
 
-			fmt.Println("This is happening", i)
-			fmt.Println("This is happening first", c[j])
-			fmt.Println("This is happening next", reg.At(i, j))
+			//fmt.Println("This is happening", i)
+			//fmt.Println("This is happening first", c[j])
+			//fmt.Println("This is happening next", reg.At(i, j))
 		}
 		waiter.Wait()
 		c[i] /= reg.At(i, i)
@@ -194,18 +194,18 @@ func (r *Regression) Run() error {
 	return nil
 }
 
-func (r *Regression) paralelProcess(f* float64, f2 float64, at float64) {
+func (r *Regression) paralelProcess(goRoutineId int, f* float64, f2 float64, at float64, wg*sync.WaitGroup) {
 	defer wg.Done()
 	*f -= f2 * at
-	//randomHostIndex := rand.Intn(len(r.NodesDir))
-	//pickedDir := r.NodesDir[randomHostIndex]
+	randomHostIndex := 0
+	pickedDir := r.NodesDir[randomHostIndex]
 
-	fmt.Println("Is this??????")
-	dialDir := fmt.Sprintf("%s:%d", "192.168.0.12",8000)
-	conn, _ := net.Dial("tcp", dialDir)
+	fmt.Println("goRoutine #%d", goRoutineId)
+
+	conn, _ := net.Dial("tcp", pickedDir)
 	defer conn.Close()
 
-	fmt.Fprintln(conn, f2, at)
+	fmt.Fprintln(conn, goRoutineId, f2, at)
 
 	//ln, _ := net.Listen("tcp", "192.168.0.4:5000")
 	//defer ln.Close()
