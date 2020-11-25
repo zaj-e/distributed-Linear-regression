@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"math/rand"
 	"net"
 	"strconv"
 	"strings"
@@ -196,8 +197,15 @@ func (r *Regression) Run() error {
 
 func (r *Regression) paralelProcess(goRoutineId int, f* float64, f2 float64, at float64, wg*sync.WaitGroup) {
 	defer wg.Done()
-	*f -= f2 * at
-	randomHostIndex := 0
+	//*f -= f2 * at
+	gg := f2*at
+	gg =-gg
+
+	randomHostIndex := rand.Intn(len(r.NodesDir))
+	if randomHostIndex > (len(r.NodesDir)-1) {
+		randomHostIndex -= 1
+	}
+
 	pickedDir := r.NodesDir[randomHostIndex]
 
 	fmt.Println("goRoutine #%d", goRoutineId)
@@ -205,19 +213,27 @@ func (r *Regression) paralelProcess(goRoutineId int, f* float64, f2 float64, at 
 	conn, _ := net.Dial("tcp", pickedDir)
 	defer conn.Close()
 
+	fmt.Println("F2: ", f2)
+	fmt.Println("AT: ", at)
+
 	fmt.Fprintln(conn, goRoutineId, f2, at)
 
-	//ln, _ := net.Listen("tcp", "192.168.0.4:5000")
-	//defer ln.Close()
-	//
-	//responseConn, _ := ln.Accept()
-	//handleResponse(f, responseConn)
-	//go func () {
-	//	for {
-	//		conn, _ := ln.Accept()
-	//		go handleResponse(f, conn)
-	//	}
-	//}()
+	buffer := make([]byte, 8)
+	conn.Read(buffer)
+
+	result := string(buffer)
+
+	fmt.Println("BAL: ", f2, " x ", at, "=",gg)
+	fmt.Println("Val:", result)
+
+	floatResult , err := strconv.ParseFloat(strings.TrimSpace(result), 64)
+	if err != nil{
+		fmt.Println(err)
+	}
+
+
+	fmt.Println("Val on float:", floatResult)
+	*f = floatResult
 }
 
 func handleResponse(f* float64, conn net.Conn) {
