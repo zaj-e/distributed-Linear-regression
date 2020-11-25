@@ -167,7 +167,7 @@ func (r *Regression) Run() error {
 		for j := i + 1; j < n; j++ {
 
 			waiter.Add(1)
-			go r.paralelProcess(&c[i], c[j], reg.At(i,j), &waiter)
+			go r.paralelProcess(&c[i], c[j], reg.At(i,j))
 
 			fmt.Println("This is happening", i)
 			fmt.Println("This is happening first", c[j])
@@ -194,7 +194,7 @@ func (r *Regression) Run() error {
 	return nil
 }
 
-func (r *Regression) paralelProcess(f* float64, f2 float64, at float64, wg*sync.WaitGroup) {
+func (r *Regression) paralelProcess(f* float64, f2 float64, at float64) {
 	defer wg.Done()
 	*f -= f2 * at
 	//randomHostIndex := rand.Intn(len(r.NodesDir))
