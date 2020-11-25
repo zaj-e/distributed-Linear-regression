@@ -1,7 +1,6 @@
 package regression
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"math"
@@ -36,6 +35,8 @@ type Regression struct {
 	crosses           []featureCross
 	hasRun            bool
 	NodesDir		  []string
+	intersec		  float64
+	multipliers	      []float64
 }
 
 type dataPoint struct {
@@ -184,8 +185,10 @@ func (r *Regression) Run() error {
 		r.coeff[i] = val
 		if i == 0 {
 			r.Formula = fmt.Sprintf("Prediccion = %.4f", val)
+			r.intersec = val
 		} else {
 			r.Formula += fmt.Sprintf(" + %v*%.4f", r.GetVar(i-1), val)
+			r.multipliers = append(r.multipliers, val)
 		}
 	}
 
@@ -198,8 +201,6 @@ func (r *Regression) Run() error {
 func (r *Regression) paralelProcess(goRoutineId int, f* float64, f2 float64, at float64, wg*sync.WaitGroup) {
 	defer wg.Done()
 	//*f -= f2 * at
-	gg := f2*at
-	gg =-gg
 
 	randomHostIndex := rand.Intn(len(r.NodesDir))
 	if randomHostIndex > (len(r.NodesDir)-1) {
@@ -213,9 +214,6 @@ func (r *Regression) paralelProcess(goRoutineId int, f* float64, f2 float64, at 
 	conn, _ := net.Dial("tcp", pickedDir)
 	defer conn.Close()
 
-	fmt.Println("F2: ", f2)
-	fmt.Println("AT: ", at)
-
 	fmt.Fprintln(conn, goRoutineId, f2, at)
 
 	buffer := make([]byte, 8)
@@ -223,26 +221,19 @@ func (r *Regression) paralelProcess(goRoutineId int, f* float64, f2 float64, at 
 
 	result := string(buffer)
 
-	fmt.Println("BAL: ", f2, " x ", at, "=",gg)
-	fmt.Println("Val:", result)
+	//fmt.Println("BAL: ", f2, " x ", at, "=",-(f2*at))
+	//fmt.Println("Val:", result)
 
 	floatResult , err := strconv.ParseFloat(strings.TrimSpace(result), 64)
 	if err != nil{
 		fmt.Println(err)
 	}
 
-
-	fmt.Println("Val on float:", floatResult)
-	*f = floatResult
+	//
+	//fmt.Println("Val on float:", -floatResult)
+	*f = -(floatResult)
 }
 
-func handleResponse(f* float64, conn net.Conn) {
-	bufferIn := bufio.NewReader(conn)
-	strResult, _ := bufferIn.ReadString('\n')
-	strResult = strings.TrimSpace(strResult)
-	numReslt, _ := strconv.ParseFloat(strResult, 64)
-	*f = numReslt
-}
 
 
 // devuelve el coeficiente calculado para la variable i.
@@ -309,5 +300,10 @@ func (r *Regression) calcResiduals() string {
 	}
 	str += "\n"
 	return str
+}
+
+func (r *Regression) TwoVariableGradePrediction(g1 float64, g2 float64) float64 {
+	prediction := r.intersec + (g1*r.multipliers[0]) + (g1*r.multipliers[1])
+	return prediction
 }
 
